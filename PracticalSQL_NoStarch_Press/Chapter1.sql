@@ -30,3 +30,23 @@ VALUES ('Janet', 'Smith', 'F.D. Roosevelt HS', '2011-10-30', 36200),
 
 
 select * from teachers;
+
+
+
+create table animals(
+	id bigserial,
+	breed varchar(50),
+	height numeric,
+	weight_in_kg numeric,
+	other_details varchar(300)
+)
+
+insert into animals(breed, height, weight_in_kg, other_details)
+values	('zebra', 180, 85, 'it is very quick'),
+		('dog', 50, 30, 'cute'),
+		('cat', 50, 30, 'it does not like people'),
+		('monster', 10, 5, '');
+		
+	
+	
+select * from animals;
