@@ -1,5 +1,5 @@
-To see the preview in Atom, you have to tap ctrl+shift+m
-
+To see the preview in Atom, you have to tap ctrl+shift+m </br>
+Exercices from Udacity SQL Nanodegree -> SQL JOINS  </br> </br> </br>
 ![](assets/sql_join_exercices-82530243.PNG)
 
 # Exericice 1
@@ -90,4 +90,28 @@ JOIN orders o ON a.id = o.account_id
 WHERE o.standard_qty > 100
 AND  o.poster_qty >50
 ORDER BY unit_price DESC
+```
+
+
+# Exercice 7
+What are the different channels used by account id 1001? Your final table should have only 2 columns: account name and the different channels. You can try SELECT DISTINCT to narrow down the results to only the unique values.
+```
+SELECT
+   DISTINCT a.id account_id, w.channel
+FROM accounts a
+JOIN web_events w ON w.account_id = a.id
+WHERE account_id =1001
+```
+
+# Exercice 8
+What are the different channels used by account id 1001? Your final table should have only 2 columns: account name and the different channels. You can try SELECT DISTINCT to narrow down the results to only the unique values.
+```
+SELECT
+   o.occurred_at,
+   a.name account_name,
+   o.total,
+   o.total_amt_usd
+FROM accounts a
+JOIN orders o ON o.account_id = a.id
+WHERE o.occurred_at BETWEEN '2015-01-01' AND '2015-12-31'
 ```
