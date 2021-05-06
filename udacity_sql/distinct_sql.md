@@ -34,7 +34,7 @@ ORDER BY nb_accounts DESC;
 __Output 50 results__
 
 ```
-SELECT DISTINCT id, name
+SELECT DISTINCT name
 FROM sales_reps;
 ```
 
