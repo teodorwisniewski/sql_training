@@ -5,7 +5,7 @@ Exercices from Udacity SQL Nanodegree -> SQL aggregations  </br> </br> </br>
 
 ![](assets/groupy_by-82530243.PNG)
 
-# Subqueries  exercices
+# CTE(Common Table Expressions)  exercices
 
 Provide the name of the sales_rep in each region with the largest amount of total_amt_usd sales.
 ```
@@ -31,7 +31,7 @@ JOIN max_by_region r
 ON s.region = r.region AND s.total_usd = r.total_usd
 ```
 
-For the region with the largest (sum) of sales total_amt_usd, how many total (count) orders were placed?
+For the region with the largest sales total_amt_usd, how many total orders were placed?
 ```
 WITH sales_rep_sales_by_reg AS
 (
@@ -54,7 +54,6 @@ WITH sales_rep_sales_by_reg AS
  	s.total_ord
  FROM sales_rep_sales_by_reg s
  WHERE s.total_usd = (SELECT * FROM max_tot_sales)
-
 ```
 
 How many accounts had more total purchases than the account name which has bought the most standard_qty paper throughout their lifetime as a customer?
@@ -82,54 +81,9 @@ WHERE total > (
 ```
 
 For the customer that spent the most (in total over their lifetime as a customer) total_amt_usd, how many web_events did they have for each channel?
-```
-WITH t1 AS
-(
-    SELECT a.id, a.name, SUM(o.total_amt_usd) tot_spent
-  FROM orders o
-  JOIN accounts a
-  ON a.id = o.account_id
-  GROUP BY a.id, a.name
-  ORDER BY 3 DESC
-  LIMIT 10
-  )
 
-
-  SELECT
-    a.name, w.channel, COUNT(*)
-  FROM accounts a
-  JOIN web_events w
-  ON a.id = w.account_id AND a.id = (SELECT id FROM t1)
-  GROUP BY 1,2
-```
 
 What is the lifetime average amount spent in terms of total_amt_usd for the top 10 total spending accounts?
-```
-WITH t1 AS
-(
-    SELECT a.id, a.name, SUM(o.total_amt_usd) tot_spent
-  FROM orders o
-  JOIN accounts a
-  ON a.id = o.account_id
-  GROUP BY a.id, a.name
-  ORDER BY 3 DESC
-  LIMIT 10
-  )
-  SELECT AVG(tot_spent) FROM t1
-```
+
 
 What is the lifetime average amount spent in terms of total_amt_usd, including only the companies that spent more per order, on average, than the average of all orders.
-
-```
-WITH t1 AS
-(
-    SELECT  
-    	o.account_id account_name,
-        AVG(o.total_amt_usd ) AS avg_per_order
-      FROM orders o
-      GROUP BY 1
-)
-
-  SELECT AVG(avg_per_order) FROM t1
-  WHERE avg_per_order> (SELECT AVG(total_amt_usd) FROM orders)
-```
