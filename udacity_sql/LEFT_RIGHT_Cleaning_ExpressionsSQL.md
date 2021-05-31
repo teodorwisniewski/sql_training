@@ -9,8 +9,11 @@ Exercices from Udacity SQL Nanodegree -> SQL aggregations  </br> </br> </br>
 
 In the accounts table, there is a column holding the website for each company. The last three digits specify what type of web address they are using. A list of extensions (and pricing) is provided here. Pull these extensions and provide how many of each website type exist in the accounts table.
 ```
-
-
+SELECT
+	RIGHT(website, 3) AS domain, count(*)
+from accounts
+group by RIGHT(website, 3)
+order by 2 DESC
 ```
 
 There is much debate about how much the name (or even the first letter of a company name) matters. Use the accounts table to pull the first letter of each company name to see the distribution of company names that begin with each letter (or number).
