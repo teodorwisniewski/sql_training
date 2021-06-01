@@ -5,7 +5,7 @@ Exercices from Udacity SQL Nanodegree -> SQL aggregations  </br> </br> </br>
 
 ![](assets/groupy_by-82530243.PNG)
 
-# Title  exercices
+# POSITION and SUBSTR  exercices
 
 Use the accounts table to create first and last name columns that hold the first and last names for the primary_poc.
 ```

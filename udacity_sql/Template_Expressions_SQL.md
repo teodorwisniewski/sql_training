@@ -10,5 +10,4 @@ Exercices from Udacity SQL Nanodegree -> SQL aggregations  </br> </br> </br>
 
 ```
 
-
 ```
