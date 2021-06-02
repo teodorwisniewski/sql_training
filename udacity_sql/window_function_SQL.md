@@ -24,3 +24,32 @@ SUM(standard_amt_usd) OVER
   (PARTITION BY DATE_TRUNC('year',occurred_at)) AS running_total
 FROM orders
 ```
+
+Select the id, account_id, and total variable from the orders table, then create a column called total_rank that ranks this total amount of paper ordered (from highest to lowest) for each account using a partition. Your final table should have these four columns.
+
+```
+SELECT
+	id, account_id, total,
+    DENSE_RANK() OVER (PARTITION BY account_id ORDER BY total DESC)
+FROM orders
+```
+
+Now, create and use an alias to shorten the following query (which is different from the one in the Aggregates in Windows Functions video) that has multiple window functions. Name the alias account_year_window, which is more descriptive than main_window in the example above.
+
+```
+SELECT id,
+       account_id,
+       DATE_TRUNC('year',occurred_at) AS year,
+       DENSE_RANK() OVER account_year_window AS dense_rank,
+       total_amt_usd,
+       SUM(total_amt_usd) OVER account_year_window AS sum_total_amt_usd,
+       COUNT(total_amt_usd) OVER account_year_window AS count_total_amt_usd,
+       AVG(total_amt_usd) OVER account_year_window AS avg_total_amt_usd,
+       MIN(total_amt_usd) OVER account_year_window AS min_total_amt_usd,
+       MAX(total_amt_usd) OVER account_year_window AS max_total_amt_usd
+FROM orders
+                                                   WINDOW account_year_window AS
+(
+  PARTITION BY account_id ORDER BY DATE_TRUNC('year',occurred_at)
+)                                                                            
+```
