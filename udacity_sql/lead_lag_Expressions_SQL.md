@@ -23,6 +23,4 @@ SELECT
     )  - total_amt_usd AS lead_difference
 FROM orders
 ORDER BY 2
-
-
 ```
