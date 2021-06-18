@@ -54,7 +54,7 @@ b. What was the total forest area (in sq km) of the world in 2016? Please keep i
 SELECT forest_area_sqkm FROM forest_area f
 WHERE f.country_name = 'World' AND f.year = 2016
 ```
-39958245.9
+39958245.9 km2
 
 c. What was the change (in sq km) in the forest area of the world from 1990 to 2016?,
 ```
@@ -95,8 +95,9 @@ e. If you compare the amount of forest area lost between 1990 and 2016, to which
 SELECT country, (total_area_sq_mi * 2.59) AS total_area_sqkm
 FROM forestation
 WHERE year = 2016
-ORDER BY total_area_sqkm;
+ORDER BY total_area_sqkm DESC;
 ```
+Peru	1279999.9891
 ## Regional Outlook
 Instructions:
 
@@ -107,12 +108,66 @@ Instructions:
 
     Create a table that shows the Regions and their percent forest area (sum of forest area divided by sum of land area) in 1990 and 2016. (Note that 1 sq mi = 2.59 sq km).
     Based on the table you created, ....
-
+    ```
+    SELECT
+    	region,
+    	perc_for_land,
+        f.*
+    FROM forestation f
+    WHERE year = 2016 OR year = 1990
+    ```
 a. What was the percent forest of the entire world in 2016? Which region had the HIGHEST percent forest in 2016, and which had the LOWEST, to 2 decimal places?
+```
+SELECT
+	region,
+	ROUND(perc_for_land::numeric, 2) percentage
+FROM forestation f
+WHERE year = 2016 and country = 'World'
+
+SELECT
+	region,
+	ROUND(perc_for_land::numeric, 2) percentage
+FROM forestation f
+WHERE year = 2016
+ORDER BY 2 DESC
+```
+31.38% </br>
+Latin America & Caribbean	98.26 </br>
+Europe & Central Asia	0.00
 
 b. What was the percent forest of the entire world in 1990? Which region had the HIGHEST percent forest in 1990, and which had the LOWEST, to 2 decimal places?
-
+```
+SELECT
+	region,
+	ROUND(perc_for_land::numeric, 2) percentage
+FROM forestation f
+WHERE year = 1990
+ORDER BY 2 DESC
+```
+World	32.42% </br>
+Latin America & Caribbean	98.91% </br>
+Europe & Central Asia	0.00% </br>
 c. Based on the table you created, which regions of the world DECREASED in forest area from 1990 to 2016?
+```
+SELECT ROUND(CAST((region_forest_1990/ region_area_1990) * 100 AS NUMERIC), 2)
+  AS forest_percent_1990,
+  ROUND(CAST((region_forest_2016 / region_area_2016) * 100 AS NUMERIC), 2)
+  AS forest_percent_2016,
+  region  
+FROM (SELECT SUM(a.forest_area_sqkm) region_forest_1990,
+  SUM(a.total_area_sqkm) region_area_1990, a.region,
+  SUM(b.forest_area_sqkm) region_forest_2016,
+  SUM(b.total_area_sqkm)  region_area_2016
+FROM  forestation a, forestation b
+WHERE  a.year = '1990'
+AND a.country != 'World'
+AND b.year = '2016'
+AND b.country != 'World'
+AND a.region = b.region
+GROUP  BY a.region) region_percent
+ORDER  BY forest_percent_1990 DESC;
+
+```
 ## Country-Level Detail
 Instructions:
 
