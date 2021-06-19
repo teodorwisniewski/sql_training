@@ -30,7 +30,7 @@ SELECT
   r.region region,
   r.income_group income_group,
   100.0*(f.forest_area_sqkm /
-  (l.total_area_sq_mi * 2.59)) AS perc_for_land
+  (l.total_area_sq_mi * 2.59)) AS perc_forest_per_land
 FROM forest_area f
 JOIN land_area l ON (f.country_code = l.country_code
 AND f.year = l.year)
@@ -149,25 +149,43 @@ Latin America & Caribbean	98.91% </br>
 Europe & Central Asia	0.00% </br>
 c. Based on the table you created, which regions of the world DECREASED in forest area from 1990 to 2016?
 ```
-SELECT ROUND(CAST((region_forest_1990/ region_area_1990) * 100 AS NUMERIC), 2)
-  AS forest_percent_1990,
-  ROUND(CAST((region_forest_2016 / region_area_2016) * 100 AS NUMERIC), 2)
-  AS forest_percent_2016,
-  region  
-FROM (SELECT SUM(a.forest_area_sqkm) region_forest_1990,
-  SUM(a.total_area_sqkm) region_area_1990, a.region,
-  SUM(b.forest_area_sqkm) region_forest_2016,
-  SUM(b.total_area_sqkm)  region_area_2016
-FROM  forestation a, forestation b
-WHERE  a.year = '1990'
-AND a.country != 'World'
-AND b.year = '2016'
-AND b.country != 'World'
-AND a.region = b.region
-GROUP  BY a.region) region_percent
-ORDER  BY forest_percent_1990 DESC;
+WITH region_percent AS
+(
+  SELECT
+  	f1990.region,
+  	SUM(f1990.forest_area_sqkm) region_forest_1990,
+    SUM(f1990.total_area_sq_mi * 2.59) region_area_1990,
+    SUM(f2016.forest_area_sqkm) region_forest_2016,
+    SUM(f2016.total_area_sq_mi * 2.59)  region_area_2016
+  FROM  forestation f1990, forestation f2016
+  WHERE  f1990.year = '1990'
+  AND f2016.year = '2016'
+  AND f1990.region = f2016.region
+  GROUP  BY f1990.region
+), forest_perc_90_16 AS
+(
+  SELECT
+      region,
+      ROUND(CAST((region_forest_1990/ region_area_1990) * 100 AS NUMERIC), 2)
+    AS forest_percent_1990,
+    ROUND(CAST((region_forest_2016 / region_area_2016) * 100 AS NUMERIC), 2)
+    AS forest_percent_2016
+  FROM region_percent
+  ORDER  BY forest_percent_1990 DESC
+)
+
+SELECT fp.*,
+fp.forest_percent_1990 - fp.forest_percent_2016 diff
+FROM forest_perc_90_16 fp
+ORDER BY 4 DESC
 
 ```
+region	forest_percent_1990	forest_percent_2016	diff </br>
+Latin America & Caribbean	51.03	46.16	4.87 </br>
+Sub-Saharan Africa	30.67	28.79	1.88 </br>
+World	32.42	31.38	1.04 </br>
+Middle East & North Africa	1.78	2.07	-0.29 </br>
+
 ## Country-Level Detail
 Instructions:
 
@@ -177,12 +195,98 @@ Instructions:
 
 a. Which 5 countries saw the largest amount decrease in forest area from 1990 to 2016? What was the difference in forest area for each?
 
+```
+SELECT
+	f1990.country_name,
+    f1990.forest_area_sqkm forest_area_1990,
+    f2016.forest_area_sqkm forest_area_2016,
+    f1990.forest_area_sqkm - f2016.forest_area_sqkm diff
+FROM forest_area f1990
+JOIN forest_area f2016
+ON f1990.year = 1990 AND f2016.year = 2016
+AND f1990.country_name = f2016.country_name
+ORDER BY 4
+```
+
+
 b. Which 5 countries saw the largest percent decrease in forest area from 1990 to 2016? What was the percent change to 2 decimal places for each?
+```
+SELECT
+	f1990.country_name,
+    f1990.forest_area_sqkm forest_area_1990,
+    f2016.forest_area_sqkm forest_area_2016,
+    100*(f1990.forest_area_sqkm - f2016.forest_area_sqkm)/f1990.forest_area_sqkm diff_perc
+FROM forest_area f1990
+JOIN forest_area f2016
+ON f1990.year = 1990 AND f2016.year = 2016
+AND f1990.country_name = f2016.country_name
+ORDER BY 4
+```
 
 c. If countries were grouped by percent forestation in quartiles, which group had the most countries in it in 2016?
+```
+WITH countries_cat AS
+(
+  SELECT COUNTRY,
+      perc_forest_per_land,
+      CASE WHEN perc_forest_per_land <= 25 THEN '0%-25%'
+    WHEN perc_forest_per_land <= 75 AND perc_forest_per_land > 50 THEN '50%-75%'
+    WHEN perc_forest_per_land <= 50 AND perc_forest_per_land > 25 THEN '25%-50%'
+    ELSE '75%-100%' END AS quartiles
+  FROM forestation
+  WHERE perc_forest_per_land IS NOT NULL AND year = 2016
+)
 
+SELECT distinct(quartiles),
+	COUNT(country)
+FROM countries_cat
+GROUP BY quartiles
+ORDER BY 1
+```
 d. List all of the countries that were in the 4th quartile (percent forest > 75%) in 2016.
 
+```
+WITH countries_cat AS
+(
+  SELECT country,
+  		region,
+      perc_forest_per_land,
+      CASE WHEN perc_forest_per_land <= 25 THEN '0%-25%'
+    WHEN perc_forest_per_land <= 50 AND perc_forest_per_land > 25 THEN '25%-50%'
+    WHEN perc_forest_per_land <= 75 AND perc_forest_per_land > 50 THEN '50%-75%'
+    ELSE '75%-100%' END AS quartiles
+  FROM forestation
+  WHERE perc_forest_per_land IS NOT NULL AND year = 2016
+)
+
+SELECT country,
+		region,
+    perc_forest_per_land
+FROM countries_cat
+WHERE perc_forest_per_land > 75
+ORDER BY 3 DESC
+```
+
 e. How many countries had a percent forestation higher than the United States in 2016?
+```
+WITH countries_cat AS
+(
+  SELECT country,
+  		region,
+      perc_forest_per_land,
+      CASE WHEN perc_forest_per_land <= 25 THEN '0%-25%'
+    WHEN perc_forest_per_land <= 50 AND perc_forest_per_land > 25 THEN '25%-50%'
+    WHEN perc_forest_per_land <= 75 AND perc_forest_per_land > 50 THEN '50%-75%'
+    ELSE '75%-100%' END AS quartiles
+  FROM forestation
+  WHERE perc_forest_per_land IS NOT NULL AND year = 2016
+)
+
+SELECT COUNT(*)
+FROM countries_cat
+WHERE perc_forest_per_land > (SELECT perc_forest_per_land FROM countries_cat WHERE country = 'United States')
+
+```
+
 ## Recommendations
 ## Appendix: SQL queries used
