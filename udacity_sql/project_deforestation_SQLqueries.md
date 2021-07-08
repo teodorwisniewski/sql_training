@@ -212,15 +212,35 @@ ORDER BY 4
 b. Which 5 countries saw the largest percent decrease in forest area from 1990 to 2016? What was the percent change to 2 decimal places for each?
 ```
 SELECT
-	f1990.country_name,
+	f1990.country,
+    f1990.region,
     f1990.forest_area_sqkm forest_area_1990,
     f2016.forest_area_sqkm forest_area_2016,
-    100*(f1990.forest_area_sqkm - f2016.forest_area_sqkm)/f1990.forest_area_sqkm diff_perc
-FROM forest_area f1990
-JOIN forest_area f2016
+    f1990.forest_area_sqkm - f2016.forest_area_sqkm diff
+FROM forestation f1990
+JOIN forestation f2016
 ON f1990.year = 1990 AND f2016.year = 2016
-AND f1990.country_name = f2016.country_name
-ORDER BY 4
+AND f1990.country = f2016.country
+WHERE f1990.forest_area_sqkm IS NOT NULL
+AND f2016.forest_area_sqkm  IS NOT NULL
+ORDER BY 5 DESC
+
+
+
+
+SELECT
+	f1990.country,
+    f1990.region,
+    f1990.forest_area_sqkm forest_area_1990,
+    f2016.forest_area_sqkm forest_area_2016,
+    100*(f1990.forest_area_sqkm - f2016.forest_area_sqkm)/f1990.forest_area_sqkm AS diff_perc
+FROM forestation f1990
+JOIN forestation f2016
+ON f1990.year = 1990 AND f2016.year = 2016
+AND f1990.country = f2016.country
+WHERE f1990.forest_area_sqkm IS NOT NULL
+AND f2016.forest_area_sqkm  IS NOT NULL
+ORDER BY 5 DESC
 ```
 
 c. If countries were grouped by percent forestation in quartiles, which group had the most countries in it in 2016?
@@ -287,6 +307,3 @@ FROM countries_cat
 WHERE perc_forest_per_land > (SELECT perc_forest_per_land FROM countries_cat WHERE country = 'United States')
 
 ```
-
-## Recommendations
-## Appendix: SQL queries used
