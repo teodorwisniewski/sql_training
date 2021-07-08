@@ -45,3 +45,26 @@ CREATE TABLE "reservations" (
 )
 
 ```
+
+__Solution__
+
+```
+CREATE TABLE "customers" (
+  "id" SERIAL,
+  "first_name" VARCHAR,
+  "last_name" VARCHAR,
+  "phone_number" VARCHAR
+);
+
+CREATE TABLE "customer_emails" (
+  "customer_id" INTEGER,
+  "email_address" VARCHAR
+);
+
+CREATE TABLE "rooms" (
+  "id" SERIAL,
+  "floor" SMALLINT,
+  "room_no" SMALLINT,
+  "area_sqft" SMALLINT
+);
+```
