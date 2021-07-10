@@ -40,6 +40,7 @@ CREATE TABLE "rooms" (
 CREATE TABLE "reservations" (
     "id" SERIAL,
     "customer_id" INT,
+    "room_id" INTEGER,
     "starting_date" TIMESTAMP WITH TIME ZONE,
     "end_date" TIMESTAMP WITH TIME ZONE
 )
@@ -66,5 +67,13 @@ CREATE TABLE "rooms" (
   "floor" SMALLINT,
   "room_no" SMALLINT,
   "area_sqft" SMALLINT
+);
+
+CREATE TABLE "reservations" (
+  "id" SERIAL,
+  "customer_id" INTEGER,
+  "room_id" INTEGER,
+  "check_in" DATE,
+  "check_out" DATE
 );
 ```
