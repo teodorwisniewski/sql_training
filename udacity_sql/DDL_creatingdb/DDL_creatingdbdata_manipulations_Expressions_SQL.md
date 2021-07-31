@@ -72,4 +72,24 @@ ALTER TABLE "user_data"
 DROP COLUMN "state";
 
 SELECT * FROM "user_data" LIMIT 5;
+SELECT * FROM "states" LIMIT 5;
+
+COMMIT;
+\set AUTOCOMMIT on
+SELECT * FROM "state" LIMIT 5;
+
+SELECT * FROM "user_data" LIMIT 5;
+SELECT * FROM "states" LIMIT 5;
+```
+
+Alternative update
+
+
+```
+UPDATE "user_data"
+SET "state_id" = (
+  SELECT "s"."state_id" FROM "states" "s"
+  WHERE "s"."state" = "user_data"."state"
+  );
+
 ```
