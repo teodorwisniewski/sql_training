@@ -28,7 +28,18 @@ REFERENCES "employees" ("id") ON DELETE SET NULL;
 __B.__ We can't delete an employee as long as they have projects assigned to them.
 ```
 ALTER TABLE "employee_projects"
+DROP CONSTRAINT "delete_employee_no_projects";
+```
+```
+ALTER TABLE "employee_projects"
 ADD CONSTRAINT "delete_employee_no_projects"
+FOREIGN KEY ("employee_id")
+REFERENCES "employees" ("id") ON DELETE RESTRICT;
+```
+__C.__ When a project gets deleted from the system, we won't need to keep track of the people who were working on it.
+```
+ALTER TABLE "employee_projects"
+ADD CONSTRAINT "delete_project"
 FOREIGN KEY ("project_id")
-REFERENCES "projects" ("id") ON DELETE RESTRICT;
+REFERENCES "projects" ("id") ON DELETE CASCADE;
 ```
