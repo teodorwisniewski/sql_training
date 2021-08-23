@@ -1,1 +1,4 @@
 *.docx
+bad-db.sql
+bad-db.*
+bad-db.db
