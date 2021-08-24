@@ -99,8 +99,8 @@ __b.__  Allow registered users to create new topics:<br/>
 CREATE TABLE "topics"
 (
     "id" SERIAL PRIMARY KEY,
-    "topics" VARCHAR(30) UNIQUE NOT NULL,
-    "description" VARCHAR(500)
+    "topic" VARCHAR(30) UNIQUE NOT NULL,
+    "description" VARCHAR(500) NULL
 );
 ```
 
@@ -138,7 +138,7 @@ CHECK
     "text_content" IS NULL) AND 
     (LENGTH(TRIM("url")) > 0 OR
     "url" IS NOT NULL))
-)
+);
 
 ```
 __d.__ Allow registered users to comment on existing posts:</br>
@@ -151,8 +151,8 @@ __d.__ Allow registered users to comment on existing posts:</br>
 
 -- d. Allow registered users to comment on existing posts
 CREATE TABLE "comments" (
-    "id" INTEGER PRIMARY KEY,
-    "parent_comment_id" DEFAULT NULL INTEGER REFERENCES "comments" ON DELETE CASCADE,
+    "id" SERIAL PRIMARY KEY,
+    "parent_comment_id" INTEGER DEFAULT NULL REFERENCES "comments" ON DELETE CASCADE,
 	"user_id" INTEGER REFERENCES "users"  ("id") ON DELETE SET NULL,
     "post_id" INTEGER REFERENCES "posts"  ("id") ON DELETE CASCADE,
 	"text_content" TEXT NOT NULL,
@@ -169,8 +169,93 @@ __e.__ Make sure that a given user can only vote once on a given post:<br/>
 CREATE TABLE "votes" (
 	"user_id" INTEGER REFERENCES "users"  ("id") ON DELETE SET NULL,
     "post_id" INTEGER REFERENCES "posts"  ("id") ON DELETE CASCADE,
-    "created_on" TIMESTAMP,
     "vote" SMALLINT CHECK ("vote"=1 OR "vote"=-1),
     CONSTRAINT "pb_user_post_votes" PRIMARY KEY ("user_id", "post_id")
 );
 ```
+
+### Part III: Migrate the provided data
+
+Now that your new schema is created, it’s time to migrate the data from the provided schema in the project’s SQL Workspace to your own schema. This will allow you to review some DML and DQL concepts, as you’ll be using INSERT...SELECT queries to do so. Here are a few guidelines to help you in this process:
+
+__1.__ Topic descriptions can all be empty<br/>
+````
+-- Topic descriptions can all be empty
+INSERT INTO "topics" ("topic")
+SELECT DISTINCT topic FROM bad_posts;
+````
+__2.__ Since the bad_comments table doesn’t have the threading feature, you can migrate all comments as top-level comments, i.e. without a parent<br/>
+
+__3.__ You can use the Postgres string function regexp_split_to_table to unwind the comma-separated votes values into separate rows<br/>
+
+__4.__ Don’t forget that some users only vote or comment, and haven’t created any posts. You’ll have to create those users too.<br/>
+````
+INSERT INTO "users" ("username")
+SELECT DISTINCT "username"
+FROM bad_posts
+UNION
+SELECT DISTINCT "username"
+FROM bad_comments
+UNION
+SELECT DISTINCT regexp_split_to_table(upvotes, ',')
+FROM bad_posts
+UNION
+SELECT DISTINCT regexp_split_to_table(downvotes, ',')
+FROM bad_posts;
+````
+__5.__ The order of your migrations matter! For example, since posts depend on users and topics, you’ll have to migrate the latter first.<br/>
+__6.__ Tip: You can start by running only SELECTs to fine-tune your queries, and use a LIMIT to avoid large data sets. Once you know you have the correct query, you can then run your full INSERT...SELECT query.<br/>
+__7.__ NOTE: The data in your SQL Workspace contains thousands of posts and comments. The DML queries may take at least 10-15 seconds to run.<br/>
+
+````
+INSERT INTO "posts" ("user_id", "topic_id", "title", "url", "text_content")
+SELECT u."id" user_id,
+    t."id" topic_id,
+    LEFT(bd."title",100),
+    bd."url",
+    bd."text_content"
+FROM  "bad_posts" bd
+JOIN "users" u ON bd.username = u.username
+JOIN "topics" t ON  bd.topic = t.topic
+;
+````
+
+
+Write the DML to migrate the current data in bad_posts and bad_comments to your new database schema:<br/>
+__comments__
+````
+INSERT INTO "comments" ("user_id", "post_id", "text_content")
+SELECT 
+    u."id" user_id,
+    bc."post_id" post_id,
+    bc."text_content"
+FROM  "bad_comments" bc
+JOIN "users" u ON bc.username = u.username
+ ;
+````
+
+__votes__
+````
+INSERT INTO "votes" ("user_id", "post_id", "vote")
+    SELECT u.id,
+        upvotes_users.id,
+        +1 AS upvotes
+    FROM (
+        SELECT id,
+             regexp_split_to_table(upvotes, ',') AS "upvotes_username" 
+            FROM "bad_posts" bd
+    ) upvotes_users
+    JOIN "users" u ON upvotes_users."upvotes_username" = u."username"
+    UNION
+    SELECT u.id,
+        downvotes_users.id,
+        -1  AS upvotes
+    FROM (
+        SELECT id,
+        regexp_split_to_table(downvotes, ',')
+        AS downvotes_username FROM "bad_posts" bd) downvotes_users
+    JOIN "users" u ON downvotes_users."downvotes_username" = u."username";
+````
+
+
+
