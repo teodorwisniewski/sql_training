@@ -39,6 +39,70 @@ The post_id column shoud have a FOREIGN KEY CONSTRAINT associated with it that r
 The columns "upvotes" and "downvotes"  should be probably INTEGER datatype.
 ```
 __Conculsions__
-'''
+```
 Users table should be created.
-'''
+```
+
+### Part II: Create the DDL for your new schema
+
+
+__1.__ Guideline #1: here is a list of features and specifications that Udiddit needs in order to support its website and administrative interface:
+__a.__  Allow new users to register:
+    * Each username has to be unique
+    * Usernames can be composed of at most 25 characters
+    * Usernames can’t be empty
+    * We won’t worry about user passwords for this project
+```
+CREATE TABLE "users"
+(
+    "id" SERIAL PRIMARY KEY,
+    "username" VARCHAR(100) NOT NULL,
+    CONSTRAINT "valid_not_empy_username" CHECK (LENGTH(TRIM("username""))>0)
+);
+-- enforcing uniqueness on "username" column
+CREATE UNIQUE INDEX "username_unique_caseinsensitive" ON "users"
+(
+    LOWER("username")
+);  
+```
+ 
+__b.__  Allow registered users to create new topics:
+    * Topic names have to be unique.
+    * The topic’s name is at most 30 characters
+    * The topic’s name can’t be empty
+    * Topics can have an optional description of at most 500 characters.
+        
+```
+CREATE TABLE "topics"
+(
+    "id" SERIAL PRIMARY KEY,
+    "topics" VARCHAR(30) UNIQUE NOT NULL,
+    "description" VARCHAR(500)
+);
+```
+
+__c.__ Allow registered users to create new posts on existing topics:
+    * Posts have a required title of at most 100 characters
+    * The title of a post can’t be empty.
+    * Posts should contain either a URL or a text content, but not both.
+    * If a topic gets deleted, all the posts associated with it should be automatically deleted too.
+    * If the user who created the post gets deleted, then the post will remain, but it will become dissociated from that user.
+```
+
+```
+__d.__ Allow registered users to comment on existing posts:</br>
+    * A comment’s text content can’t be empty.
+    * Contrary to the current linear comments, the new structure should allow comment threads at arbitrary levels.
+    * If a post gets deleted, all comments associated with it should be automatically deleted too.
+    * If the user who created the comment gets deleted, then the comment will remain, but it will become dissociated from that user.
+    * If a comment gets deleted, then all its descendants in the thread structure should be automatically deleted too.
+```
+
+```
+__e.__ Make sure that a given user can only vote once on a given post:
+    * Hint: you can store the (up/down) value of the vote as the values 1 and -1 respectively.
+    * If the user who cast a vote gets deleted, then all their votes will remain, but will become dissociated from the user.
+    * If a post gets deleted, then all the votes for that post should be automatically deleted too.
+```
+
+```
