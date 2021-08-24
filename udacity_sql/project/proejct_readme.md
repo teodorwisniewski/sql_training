@@ -74,11 +74,12 @@ __a.__  Allow new users to register:<br/>
     * Usernames can’t be empty<br/>
     * We won’t worry about user passwords for this project<br/>
 ```
+-- a. Allow new users to register
 CREATE TABLE "users"
 (
     "id" SERIAL PRIMARY KEY,
     "username" VARCHAR(100) NOT NULL,
-    CONSTRAINT "valid_not_empy_username" CHECK (LENGTH(TRIM("username""))>0)
+    CONSTRAINT "valid_not_empy_username" CHECK (LENGTH(TRIM("username"))>0)
 );
 -- enforcing uniqueness on "username" column
 CREATE UNIQUE INDEX "username_unique_caseinsensitive" ON "users"
@@ -94,6 +95,7 @@ __b.__  Allow registered users to create new topics:<br/>
     * Topics can have an optional description of at most 500 characters.<br/>
         
 ```
+-- b. Allow registered users to create new topics
 CREATE TABLE "topics"
 (
     "id" SERIAL PRIMARY KEY,
@@ -109,16 +111,18 @@ __c.__ Allow registered users to create new posts on existing topics:<br/>
     * If a topic gets deleted, all the posts associated with it should be automatically deleted too.<br/>
     * If the user who created the post gets deleted, then the post will remain, but it will become dissociated from that user.<br/>
 ```
+-- c. Allow registered users to create new posts on existing topics
 CREATE TABLE posts (
-	id SERIAL PRIMARY KEY,
-	topic_id INTEGER REFERENCES "topics" ON DELETE CASCADE,
-	user_id INTEGER REFERENCES "users" ON DELETE SET NULL,
-	title VARCHAR(100) NOT NULL,
-	url VARCHAR(4000),
-	text_content TEXT,
-	upvotes INTEGER,
-	downvotes INTEGER,
-    CONSTRAINT "title_is_not_empty" CHECK (LENGHT(TRIM("title")) > 0)
+	"id" SERIAL PRIMARY KEY,
+	"topic_id" INTEGER REFERENCES "topics" ("id") ON DELETE CASCADE,
+	"user_id" INTEGER REFERENCES "users" ("id") ON DELETE SET NULL,
+	"title" VARCHAR(100) NOT NULL,
+	"url" VARCHAR(4000),
+	"text_content" TEXT,
+	"upvotes" INTEGER,
+	"downvotes" INTEGER,
+    "created_on" TIMESTAMP,
+    CONSTRAINT "title_is_not_empty" CHECK (LENGTH(TRIM("title")) > 0)
 );
 
 
@@ -126,13 +130,13 @@ ALTER TABLE "posts"
 ADD CONSTRAINT "either_URL_or_text_content"
 CHECK
 (
-    ((LENGHT(TRIM("url")) = 0 OR
+    ((LENGTH(TRIM("url")) = 0 OR
     "url" IS NULL) AND 
-    (LENGHT(TRIM("text_content")) > 0 OR
+    (LENGTH(TRIM("text_content")) > 0 OR
     "text_content" IS NOT NULL)) OR
-    ((LENGHT(TRIM("text_content")) = 0 OR
+    ((LENGTH(TRIM("text_content")) = 0 OR
     "text_content" IS NULL) AND 
-    (LENGHT(TRIM("url")) > 0 OR
+    (LENGTH(TRIM("url")) > 0 OR
     "url" IS NOT NULL))
 )
 
@@ -145,11 +149,28 @@ __d.__ Allow registered users to comment on existing posts:</br>
     * If a comment gets deleted, then all its descendants in the thread structure should be automatically deleted too.<br/>
 ```
 
+-- d. Allow registered users to comment on existing posts
+CREATE TABLE "comments" (
+    "id" INTEGER PRIMARY KEY,
+    "parent_comment_id" DEFAULT NULL INTEGER REFERENCES "comments" ON DELETE CASCADE,
+	"user_id" INTEGER REFERENCES "users"  ("id") ON DELETE SET NULL,
+    "post_id" INTEGER REFERENCES "posts"  ("id") ON DELETE CASCADE,
+	"text_content" TEXT NOT NULL,
+    "created_on" TIMESTAMP,
+    CONSTRAINT "text_content_is_not_empty" CHECK (LENGTH(TRIM("text_content")) > 0)
+);
 ```
 __e.__ Make sure that a given user can only vote once on a given post:<br/>
     * Hint: you can store the (up/down) value of the vote as the values 1 and -1 respectively.<br/>
     * If the user who cast a vote gets deleted, then all their votes will remain, but will become dissociated from the user.<br/>
     * If a post gets deleted, then all the votes for that post should be automatically deleted too.<br/>
 ```
-
+-- e. Make sure that a given user can only vote once on a given post
+CREATE TABLE "votes" (
+	"user_id" INTEGER REFERENCES "users"  ("id") ON DELETE SET NULL,
+    "post_id" INTEGER REFERENCES "posts"  ("id") ON DELETE CASCADE,
+    "created_on" TIMESTAMP,
+    "vote" SMALLINT CHECK ("vote"=1 OR "vote"=-1),
+    CONSTRAINT "pb_user_post_votes" PRIMARY KEY ("user_id", "post_id")
+);
 ```
