@@ -25,5 +25,12 @@ db.events.countDocuments(
 ```
 ![](second_question.JPG)
 __3.__ The total number of events that came from a Firefox browser and happened on or after April 20th, 2019
-
+```
+db.events.countDocuments(
+  {
+    timestamp:{$gte:new Date("2019-04-20T00:00:00.000Z")}
+  }
+  )
+```
+![](third_question.JPG)
 __4.__ The list of the top 100 events that happened in Chrome on Windows, sorted in reverse chronological order
