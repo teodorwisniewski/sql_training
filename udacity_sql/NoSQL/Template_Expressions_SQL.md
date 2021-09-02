@@ -34,3 +34,14 @@ db.events.countDocuments(
 ```
 ![](third_question.JPG)
 __4.__ The list of the top 100 events that happened in Chrome on Windows, sorted in reverse chronological order
+```
+db.events.find(
+  {
+    'browser.vendor':"chrome",
+    'browser.os': "windows"
+  }
+  ).sort({
+    timestamp:-1
+    }).limit(100).pretty()
+```
+![](fourth_question.JPG)
